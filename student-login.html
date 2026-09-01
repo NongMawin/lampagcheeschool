@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบนักเรียน | Lampagchee School</title>
+<link rel="icon" type="image/png" href="images/logo.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
+  body { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0f766e,#14b8a6); }
+  .login-wrapper { width:100%; display:flex; justify-content:center; padding:20px; }
+  .login-card { background:#fff; width:100%; max-width:380px; padding:40px 32px; border-radius:16px; box-shadow:0 20px 40px rgba(0,0,0,0.25); text-align:center; }
+  .logo-area { margin-bottom:28px; }
+  .logo-circle { width:60px; height:60px; margin:0 auto 12px; background:#0f766e; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; }
+  .logo-area h1 { font-size:20px; color:#1e293b; margin-bottom:4px; }
+  .subtitle { font-size:13px; color:#64748b; }
+  .input-group { text-align:left; margin-bottom:18px; }
+  .input-group label { display:block; font-size:13px; color:#334155; margin-bottom:6px; font-weight:600; }
+  .input-group input { width:100%; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; outline:none; transition:border-color .2s, box-shadow .2s; }
+  .input-group input:focus { border-color:#0f766e; box-shadow:0 0 0 3px rgba(15,118,110,0.15); }
+  .error-msg { color:#dc2626; font-size:13px; min-height:18px; margin-bottom:10px; text-align:left; }
+  .btn-login { width:100%; padding:12px; background:#0f766e; color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; }
+  .btn-login:hover { background:#115e59; }
+  .footer-note { margin-top:24px; font-size:11px; color:#94a3b8; }
+  .admin-link { margin-top:14px; font-size:12px; }
+  .admin-link a { color:#0f766e; text-decoration:none; font-weight:600; }
+  .admin-link a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="logo-area">
+        <img src="images/logo.png" alt="Lampagchee School logo" style="width:64px; height:64px; object-fit:contain; margin:0 auto 12px; display:block;">
+        <h1>Lampagchee School</h1>
+        <p class="subtitle">ระบบสำหรับนักเรียน</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="studentId">รหัสนักเรียน</label>
+          <input type="text" id="studentId" placeholder="กรอกรหัสนักเรียน" autocomplete="username" required>
+        </div>
+        <div class="input-group">
+          <label for="studentPassword">รหัสผ่าน</label>
+          <input type="password" id="studentPassword" placeholder="กรอกรหัสผ่าน" autocomplete="current-password" required>
+        </div>
+        <p id="errorMsg" class="error-msg"></p>
+        <button type="submit" class="btn-login">เข้าสู่ระบบ</button>
+      </form>
+
+      <p class="footer-note">&copy; 2026 Lampagchee School. All rights reserved.</p>
+      <p class="admin-link"><a href="index.html">← กลับหน้าแรกเว็บไซต์</a></p>
+      <p class="admin-link"><a href="login.html">เข้าสู่ระบบสำหรับผู้ดูแลระบบ →</a></p>
+    </div>
+  </div>
+
+<script>
+  const loginForm = document.getElementById("loginForm");
+  const errorMsg = document.getElementById("errorMsg");
+
+  function getStudents() {
+    const raw = localStorage.getItem("lampagchee_students");
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const studentId = document.getElementById("studentId").value.trim();
+    const password = document.getElementById("studentPassword").value;
+    const students = getStudents();
+    const match = students.find(s => s.studentId === studentId && s.password === password);
+
+    if (match) {
+      sessionStorage.setItem("lampagchee_student_logged_in", "true");
+      sessionStorage.setItem("lampagchee_current_student", JSON.stringify(match));
+      errorMsg.textContent = "";
+      window.location.href = "index.html";
+    } else {
+      errorMsg.textContent = "รหัสนักเรียนหรือรหัสผ่านไม่ถูกต้อง";
+    }
+  });
+</script>
+</body>
+</html>
