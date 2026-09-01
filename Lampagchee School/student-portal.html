@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>พอร์ทัลนักเรียน | Lampagchee School</title>
+<link rel="icon" type="image/png" href="images/logo.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
+  body { background:#f0fdfa; min-height:100vh; }
+
+  .logo-circle { width:36px; height:36px; background:#0f766e; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+
+  .topbar { background:#fff; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(0,0,0,0.06); width:100%; }
+  .topbar-left { display:flex; align-items:center; gap:12px; }
+  .topbar-title { font-weight:600; color:#134e4a; font-size:15px; }
+  .topbar-right { display:flex; align-items:center; gap:16px; font-size:14px; color:#475569; }
+  .btn-logout { padding:8px 16px; background:#ef4444; color:#fff; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-logout:hover { background:#dc2626; }
+
+  main { max-width:800px; margin:0 auto; padding:36px 24px; }
+  h1 { color:#134e4a; font-size:24px; margin-bottom:4px; }
+  .page-desc { color:#64748b; font-size:14px; margin-bottom:24px; }
+
+  .news-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); margin-bottom:16px; }
+  .news-title { font-weight:700; color:#134e4a; font-size:16px; margin-bottom:4px; }
+  .news-date { font-size:12px; color:#94a3b8; margin-bottom:10px; }
+  .news-body { font-size:14px; color:#334155; line-height:1.6; white-space:pre-wrap; }
+  .empty-note { color:#94a3b8; font-size:14px; text-align:center; padding:40px 0; }
+
+  @media (max-width:600px) {
+    .topbar { flex-wrap:wrap; gap:8px; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <img src="images/logo.png" alt="logo" style="width:36px; height:36px; object-fit:contain;">
+      <span class="topbar-title">Lampagchee School — พอร์ทัลนักเรียน</span>
+    </div>
+    <div class="topbar-right">
+      <span id="welcomeText">สวัสดี</span>
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <main>
+    <h1>ข่าวสาร / ประกาศ</h1>
+    <p class="page-desc">ประกาศล่าสุดจากทางโรงเรียน</p>
+    <div id="newsList"></div>
+  </main>
+
+<script>
+  // ---------- Auth guard ----------
+  if (sessionStorage.getItem("lampagchee_student_logged_in") !== "true") {
+    window.location.href = "student-login.html";
+  }
+
+  const currentStudent = JSON.parse(sessionStorage.getItem("lampagchee_current_student") || "{}");
+  document.getElementById("welcomeText").textContent = "สวัสดี, " + (currentStudent.name || currentStudent.studentId || "นักเรียน");
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    sessionStorage.removeItem("lampagchee_student_logged_in");
+    sessionStorage.removeItem("lampagchee_current_student");
+    window.location.href = "student-login.html";
+  });
+
+  // ---------- Load news (read-only, shared with admin dashboard) ----------
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  const news = JSON.parse(localStorage.getItem("lampagchee_news") || "[]");
+  const list = document.getElementById("newsList");
+
+  if (news.length === 0) {
+    list.innerHTML = '<div class="empty-note">ยังไม่มีข่าวสารหรือประกาศในขณะนี้</div>';
+  } else {
+    list.innerHTML = news.slice().reverse().map(n => `
+      <div class="news-card">
+        <div class="news-title">${escapeHtml(n.title)}</div>
+        <div class="news-date">${n.date || ""}</div>
+        <div class="news-body">${escapeHtml(n.content)}</div>
+      </div>
+    `).join("");
+  }
+</script>
+</body>
+</html>
