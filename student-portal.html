@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>พอร์ทัลนักเรียน | Lampagchee School</title>
 <link rel="icon" type="image/png" href="images/logo.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBF-b1LA4tZb_2Z3ewbxWbScGrG4bF7s9E",
+    authDomain: "lampagcheeschool-75746.firebaseapp.com",
+    databaseURL: "https://lampagcheeschool-75746-default-rtdb.firebaseio.com",
+    projectId: "lampagcheeschool-75746",
+    storageBucket: "lampagcheeschool-75746.firebasestorage.app",
+    messagingSenderId: "776004060378",
+    appId: "1:776004060378:web:6e017cad24758cc4f2d1e3"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
   body { background:#f0fdfa; min-height:100vh; }
@@ -75,20 +90,28 @@
     })[m]);
   }
 
-  const news = JSON.parse(localStorage.getItem("lampagchee_news") || "[]");
   const list = document.getElementById("newsList");
+  list.innerHTML = '<div class="empty-note">กำลังโหลดข่าวสาร...</div>';
 
-  if (news.length === 0) {
-    list.innerHTML = '<div class="empty-note">ยังไม่มีข่าวสารหรือประกาศในขณะนี้</div>';
-  } else {
-    list.innerHTML = news.slice().reverse().map(n => `
-      <div class="news-card">
-        <div class="news-title">${escapeHtml(n.title)}</div>
-        <div class="news-date">${n.date || ""}</div>
-        <div class="news-body">${escapeHtml(n.content)}</div>
-      </div>
-    `).join("");
-  }
+  db.ref("news").once("value").then(snap => {
+    const val = snap.val() || {};
+    const news = Object.values(val);
+
+    if (news.length === 0) {
+      list.innerHTML = '<div class="empty-note">ยังไม่มีข่าวสารหรือประกาศในขณะนี้</div>';
+    } else {
+      list.innerHTML = news.slice().reverse().map(n => `
+        <div class="news-card">
+          <div class="news-title">${escapeHtml(n.title)}</div>
+          <div class="news-date">${n.date || ""}</div>
+          <div class="news-body">${escapeHtml(n.content)}</div>
+        </div>
+      `).join("");
+    }
+  }).catch(err => {
+    list.innerHTML = '<div class="empty-note">โหลดข่าวสารไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง</div>';
+    console.error(err);
+  });
 </script>
 </body>
 </html>

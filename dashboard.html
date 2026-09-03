@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>แดชบอร์ด | Lampagchee School</title>
 <link rel="icon" type="image/png" href="images/logo.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBF-b1LA4tZb_2Z3ewbxWbScGrG4bF7s9E",
+    authDomain: "lampagcheeschool-75746.firebaseapp.com",
+    databaseURL: "https://lampagcheeschool-75746-default-rtdb.firebaseio.com",
+    projectId: "lampagcheeschool-75746",
+    storageBucket: "lampagcheeschool-75746.firebasestorage.app",
+    messagingSenderId: "776004060378",
+    appId: "1:776004060378:web:6e017cad24758cc4f2d1e3"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
   body { background:#f1f5f9; min-height:100vh; }
@@ -445,45 +460,77 @@
     document.getElementById("view-home").classList.add("active");
   }
 
-  // ---------- Helpers ----------
-  function loadData(key, fallback) {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+  // ---------- Firebase helpers ----------
+  // โหลด object เดี่ยว เช่น pages, contact, credentials
+  function fbLoadObject(path, fallback) {
+    return db.ref(path).once("value").then(snap => {
+      const val = snap.val();
+      return (val === null || val === undefined) ? fallback : val;
+    });
   }
-  function saveData(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+  // บันทึก object เดี่ยว (เขียนทับทั้งหมด)
+  function fbSaveObject(path, data) {
+    return db.ref(path).set(data);
+  }
+  // โหลดรายการ เช่น news, gallery, staff, students เป็น array พร้อม id
+  function fbLoadList(path) {
+    return db.ref(path).once("value").then(snap => {
+      const val = snap.val() || {};
+      return Object.keys(val).map(id => ({ id, ...val[id] }));
+    });
+  }
+  // บันทึก/แก้ไข 1 รายการในลิสต์
+  function fbSaveItem(path, id, data) {
+    return db.ref(path + "/" + id).set(data);
+  }
+  // ลบ 1 รายการออกจากลิสต์
+  function fbDeleteItem(path, id) {
+    return db.ref(path + "/" + id).remove();
   }
   function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
-  function flashSaved(elId) {
+  function flashSaved() {
     const toast = document.getElementById("toast");
     toast.classList.add("show");
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2200);
   }
+  function flashError(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.style.background = "#dc2626";
+    toast.classList.add("show");
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => { toast.textContent = "บันทึกแล้ว ✓"; toast.style.background = "#16a34a"; }, 300);
+    }, 2800);
+  }
 
   // ---------- NEWS ----------
   function renderNews() {
-    const news = loadData("lampagchee_news", []);
     const list = document.getElementById("newsList");
-    if (news.length === 0) {
-      list.innerHTML = '<div class="empty-note">ยังไม่มีข่าวสาร</div>';
-      return;
-    }
-    list.innerHTML = news.slice().reverse().map(n => `
-      <div class="list-item">
-        <div class="list-item-main">
-          <div class="list-item-title">${escapeHtml(n.title)}</div>
-          <div class="list-item-sub">${n.date || ""}</div>
-          <div class="list-item-body">${escapeHtml(n.content)}</div>
+    list.innerHTML = '<div class="empty-note">กำลังโหลด...</div>';
+    fbLoadList("news").then(news => {
+      if (news.length === 0) {
+        list.innerHTML = '<div class="empty-note">ยังไม่มีข่าวสาร</div>';
+        return;
+      }
+      list.innerHTML = news.slice().reverse().map(n => `
+        <div class="list-item">
+          <div class="list-item-main">
+            <div class="list-item-title">${escapeHtml(n.title)}</div>
+            <div class="list-item-sub">${n.date || ""}</div>
+            <div class="list-item-body">${escapeHtml(n.content)}</div>
+          </div>
+          <div class="list-item-actions">
+            <button class="btn btn-secondary" onclick="editNews('${n.id}')">แก้ไข</button>
+            <button class="btn btn-danger" onclick="deleteNews('${n.id}')">ลบ</button>
+          </div>
         </div>
-        <div class="list-item-actions">
-          <button class="btn btn-secondary" onclick="editNews('${n.id}')">แก้ไข</button>
-          <button class="btn btn-danger" onclick="deleteNews('${n.id}')">ลบ</button>
-        </div>
-      </div>
-    `).join("");
+      `).join("");
+    }).catch(() => { list.innerHTML = '<div class="empty-note">โหลดข้อมูลไม่สำเร็จ</div>'; });
   }
   function saveNews() {
     const title = document.getElementById("newsTitle").value.trim();
@@ -491,34 +538,29 @@
     const content = document.getElementById("newsContent").value.trim();
     if (!title || !content) { alert("กรุณากรอกหัวข้อและรายละเอียดข่าว"); return; }
     const editId = document.getElementById("newsEditId").value;
-    let news = loadData("lampagchee_news", []);
-    if (editId) {
-      news = news.map(n => n.id === editId ? { ...n, title, date, content } : n);
-    } else {
-      news.push({ id: uid(), title, date, content });
-    }
-    saveData("lampagchee_news", news);
-    resetNewsForm();
-    renderNews();
+    const id = editId || uid();
+    fbSaveItem("news", id, { title, date, content }).then(() => {
+      resetNewsForm();
+      renderNews();
+      flashSaved();
+    }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
   function editNews(id) {
-    const news = loadData("lampagchee_news", []);
-    const n = news.find(x => x.id === id);
-    if (!n) return;
-    document.getElementById("newsEditId").value = n.id;
-    document.getElementById("newsTitle").value = n.title;
-    document.getElementById("newsDate").value = n.date || "";
-    document.getElementById("newsContent").value = n.content;
-    document.getElementById("newsFormTitle").textContent = "แก้ไขข่าว";
-    document.getElementById("newsCancelBtn").style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    fbLoadList("news").then(news => {
+      const n = news.find(x => x.id === id);
+      if (!n) return;
+      document.getElementById("newsEditId").value = n.id;
+      document.getElementById("newsTitle").value = n.title;
+      document.getElementById("newsDate").value = n.date || "";
+      document.getElementById("newsContent").value = n.content;
+      document.getElementById("newsFormTitle").textContent = "แก้ไขข่าว";
+      document.getElementById("newsCancelBtn").style.display = "inline-block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
   function deleteNews(id) {
     if (!confirm("ต้องการลบข่าวนี้หรือไม่?")) return;
-    let news = loadData("lampagchee_news", []);
-    news = news.filter(n => n.id !== id);
-    saveData("lampagchee_news", news);
-    renderNews();
+    fbDeleteItem("news", id).then(renderNews).catch(() => flashError("ลบไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
   function resetNewsForm() {
     document.getElementById("newsEditId").value = "";
@@ -531,45 +573,48 @@
 
   // ---------- GALLERY ----------
   function renderGallery() {
-    const gallery = loadData("lampagchee_gallery", []);
     const grid = document.getElementById("galleryGrid");
     const empty = document.getElementById("galleryEmpty");
-    if (gallery.length === 0) {
-      grid.innerHTML = "";
-      empty.style.display = "block";
-      return;
-    }
     empty.style.display = "none";
-    grid.innerHTML = gallery.slice().reverse().map(g => `
-      <div class="gallery-item">
-        <img src="${g.imgData}" alt="${escapeHtml(g.caption || "")}">
-        ${g.caption ? `<div class="gallery-caption">${escapeHtml(g.caption)}</div>` : ""}
-        <button class="gallery-del" onclick="deleteGalleryImage('${g.id}')">✕</button>
-      </div>
-    `).join("");
+    grid.innerHTML = '<div class="empty-note">กำลังโหลด...</div>';
+    fbLoadList("gallery").then(gallery => {
+      if (gallery.length === 0) {
+        grid.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+      grid.innerHTML = gallery.slice().reverse().map(g => `
+        <div class="gallery-item">
+          <img src="${g.imgData}" alt="${escapeHtml(g.caption || "")}">
+          ${g.caption ? `<div class="gallery-caption">${escapeHtml(g.caption)}</div>` : ""}
+          <button class="gallery-del" onclick="deleteGalleryImage('${g.id}')">✕</button>
+        </div>
+      `).join("");
+    }).catch(() => { grid.innerHTML = '<div class="empty-note">โหลดข้อมูลไม่สำเร็จ</div>'; });
   }
   function addGalleryImage() {
     const fileInput = document.getElementById("galleryFile");
     const caption = document.getElementById("galleryCaption").value.trim();
     const file = fileInput.files[0];
     if (!file) { alert("กรุณาเลือกไฟล์รูปภาพ"); return; }
+    if (file.size > 700 * 1024) {
+      alert("ไฟล์รูปใหญ่เกินไป (เกิน 700KB) กรุณาเลือกรูปที่มีขนาดเล็กลง");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = function (e) {
-      const gallery = loadData("lampagchee_gallery", []);
-      gallery.push({ id: uid(), imgData: e.target.result, caption });
-      saveData("lampagchee_gallery", gallery);
-      fileInput.value = "";
-      document.getElementById("galleryCaption").value = "";
-      renderGallery();
+      fbSaveItem("gallery", uid(), { imgData: e.target.result, caption }).then(() => {
+        fileInput.value = "";
+        document.getElementById("galleryCaption").value = "";
+        renderGallery();
+        flashSaved();
+      }).catch(() => flashError("อัปโหลดไม่สำเร็จ ลองใหม่อีกครั้ง"));
     };
     reader.readAsDataURL(file);
   }
   function deleteGalleryImage(id) {
     if (!confirm("ต้องการลบรูปนี้หรือไม่?")) return;
-    let gallery = loadData("lampagchee_gallery", []);
-    gallery = gallery.filter(g => g.id !== id);
-    saveData("lampagchee_gallery", gallery);
-    renderGallery();
+    fbDeleteItem("gallery", id).then(renderGallery).catch(() => flashError("ลบไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
 
   // ---------- STAFF ----------
@@ -582,62 +627,77 @@
     reader.readAsDataURL(file);
   });
   function renderStaff() {
-    const staff = loadData("lampagchee_staff", []);
     const grid = document.getElementById("staffGrid");
     const empty = document.getElementById("staffEmpty");
-    if (staff.length === 0) {
-      grid.innerHTML = "";
-      empty.style.display = "block";
-      return;
-    }
     empty.style.display = "none";
-    grid.innerHTML = staff.map(s => `
-      <div class="staff-card">
-        <img class="staff-photo" src="${s.photo || ''}" onerror="this.style.background='#cbd5e1'; this.src='';" alt="">
-        <div class="staff-name">${escapeHtml(s.name)}</div>
-        <div class="staff-role">${escapeHtml(s.position)}${s.subject ? " · " + escapeHtml(s.subject) : ""}</div>
-        <div style="display:flex; gap:8px; justify-content:center;">
-          <button class="btn btn-secondary" onclick="editStaff('${s.id}')">แก้ไข</button>
-          <button class="btn btn-danger" onclick="deleteStaff('${s.id}')">ลบ</button>
+    grid.innerHTML = '<div class="empty-note">กำลังโหลด...</div>';
+    fbLoadList("staff").then(staff => {
+      if (staff.length === 0) {
+        grid.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+      grid.innerHTML = staff.map(s => `
+        <div class="staff-card">
+          <img class="staff-photo" src="${s.photo || ''}" onerror="this.style.background='#cbd5e1'; this.src='';" alt="">
+          <div class="staff-name">${escapeHtml(s.name)}</div>
+          <div class="staff-role">${escapeHtml(s.position)}${s.subject ? " · " + escapeHtml(s.subject) : ""}</div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <button class="btn btn-secondary" onclick="editStaff('${s.id}')">แก้ไข</button>
+            <button class="btn btn-danger" onclick="deleteStaff('${s.id}')">ลบ</button>
+          </div>
         </div>
-      </div>
-    `).join("");
+      `).join("");
+    }).catch(() => { grid.innerHTML = '<div class="empty-note">โหลดข้อมูลไม่สำเร็จ</div>'; });
   }
   function saveStaff() {
     const name = document.getElementById("staffName").value.trim();
     const position = document.getElementById("staffPosition").value.trim();
     const subject = document.getElementById("staffSubject").value.trim();
     if (!name || !position) { alert("กรุณากรอกชื่อและตำแหน่ง"); return; }
-    const editId = document.getElementById("staffEditId").value;
-    let staff = loadData("lampagchee_staff", []);
-    if (editId) {
-      staff = staff.map(s => s.id === editId ? { ...s, name, position, subject, photo: staffPhotoData || s.photo } : s);
-    } else {
-      staff.push({ id: uid(), name, position, subject, photo: staffPhotoData });
+    if (staffPhotoData && staffPhotoData.length > 700 * 1024) {
+      alert("ไฟล์รูปใหญ่เกินไป กรุณาเลือกรูปที่มีขนาดเล็กลง");
+      return;
     }
-    saveData("lampagchee_staff", staff);
-    resetStaffForm();
-    renderStaff();
+    const editId = document.getElementById("staffEditId").value;
+    const id = editId || uid();
+
+    const proceed = (photo) => {
+      fbSaveItem("staff", id, { name, position, subject, photo: photo || null }).then(() => {
+        resetStaffForm();
+        renderStaff();
+        flashSaved();
+      }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
+    };
+
+    if (staffPhotoData) {
+      proceed(staffPhotoData);
+    } else if (editId) {
+      fbLoadList("staff").then(staff => {
+        const existing = staff.find(s => s.id === editId);
+        proceed(existing ? existing.photo : null);
+      });
+    } else {
+      proceed(null);
+    }
   }
   function editStaff(id) {
-    const staff = loadData("lampagchee_staff", []);
-    const s = staff.find(x => x.id === id);
-    if (!s) return;
-    document.getElementById("staffEditId").value = s.id;
-    document.getElementById("staffName").value = s.name;
-    document.getElementById("staffPosition").value = s.position;
-    document.getElementById("staffSubject").value = s.subject || "";
-    document.getElementById("staffFormTitle").textContent = "แก้ไขข้อมูลบุคลากร";
-    document.getElementById("staffCancelBtn").style.display = "inline-block";
-    staffPhotoData = null;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    fbLoadList("staff").then(staff => {
+      const s = staff.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById("staffEditId").value = s.id;
+      document.getElementById("staffName").value = s.name;
+      document.getElementById("staffPosition").value = s.position;
+      document.getElementById("staffSubject").value = s.subject || "";
+      document.getElementById("staffFormTitle").textContent = "แก้ไขข้อมูลบุคลากร";
+      document.getElementById("staffCancelBtn").style.display = "inline-block";
+      staffPhotoData = null;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
   function deleteStaff(id) {
     if (!confirm("ต้องการลบข้อมูลนี้หรือไม่?")) return;
-    let staff = loadData("lampagchee_staff", []);
-    staff = staff.filter(s => s.id !== id);
-    saveData("lampagchee_staff", staff);
-    renderStaff();
+    fbDeleteItem("staff", id).then(renderStaff).catch(() => flashError("ลบไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
   function resetStaffForm() {
     document.getElementById("staffEditId").value = "";
@@ -652,28 +712,28 @@
 
   // ---------- PAGES ----------
   function loadPages() {
-    const pages = loadData("lampagchee_pages", { home: "", about: "" });
-    document.getElementById("pageHome").value = pages.home || "";
-    document.getElementById("pageAbout").value = pages.about || "";
+    fbLoadObject("pages", { home: "", about: "" }).then(pages => {
+      document.getElementById("pageHome").value = pages.home || "";
+      document.getElementById("pageAbout").value = pages.about || "";
+    });
   }
   function savePages() {
     const pages = {
       home: document.getElementById("pageHome").value,
       about: document.getElementById("pageAbout").value
     };
-    saveData("lampagchee_pages", pages);
-    flashSaved("pageHomeSaved");
-    flashSaved("pageAboutSaved");
+    fbSaveObject("pages", pages).then(flashSaved).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
 
   // ---------- CONTACT ----------
   function loadContact() {
-    const c = loadData("lampagchee_contact", {});
-    document.getElementById("contactAddress").value = c.address || "";
-    document.getElementById("contactPhone").value = c.phone || "";
-    document.getElementById("contactEmail").value = c.email || "";
-    document.getElementById("contactFacebook").value = c.facebook || "";
-    document.getElementById("contactLine").value = c.line || "";
+    fbLoadObject("contact", {}).then(c => {
+      document.getElementById("contactAddress").value = c.address || "";
+      document.getElementById("contactPhone").value = c.phone || "";
+      document.getElementById("contactEmail").value = c.email || "";
+      document.getElementById("contactFacebook").value = c.facebook || "";
+      document.getElementById("contactLine").value = c.line || "";
+    });
   }
   function saveContact() {
     const c = {
@@ -683,17 +743,17 @@
       facebook: document.getElementById("contactFacebook").value.trim(),
       line: document.getElementById("contactLine").value.trim()
     };
-    saveData("lampagchee_contact", c);
-    flashSaved("contactSaved");
+    fbSaveObject("contact", c).then(flashSaved).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
 
   // ---------- SETTINGS ----------
   function loadSettings() {
-    const creds = loadData("lampagchee_credentials", { username: "admin", password: "lampagchee2026" });
-    document.getElementById("settingsUsername").value = creds.username;
-    document.getElementById("settingsPassword").value = "";
-    document.getElementById("settingsPasswordConfirm").value = "";
-    document.getElementById("settingsError").textContent = "";
+    fbLoadObject("credentials", { username: "admin", password: "lampagchee2026" }).then(creds => {
+      document.getElementById("settingsUsername").value = creds.username;
+      document.getElementById("settingsPassword").value = "";
+      document.getElementById("settingsPasswordConfirm").value = "";
+      document.getElementById("settingsError").textContent = "";
+    });
   }
   function saveSettings() {
     const username = document.getElementById("settingsUsername").value.trim();
@@ -705,34 +765,38 @@
     if (!username) { errorEl.textContent = "กรุณากรอกชื่อผู้ใช้"; return; }
     if (password && password !== confirmPw) { errorEl.textContent = "รหัสผ่านใหม่ไม่ตรงกัน"; return; }
 
-    const creds = loadData("lampagchee_credentials", { username: "admin", password: "lampagchee2026" });
-    const updated = { username, password: password ? password : creds.password };
-    saveData("lampagchee_credentials", updated);
-    flashSaved("settingsSaved");
-    document.getElementById("settingsPassword").value = "";
-    document.getElementById("settingsPasswordConfirm").value = "";
+    fbLoadObject("credentials", { username: "admin", password: "lampagchee2026" }).then(creds => {
+      const updated = { username, password: password ? password : creds.password };
+      return fbSaveObject("credentials", updated);
+    }).then(() => {
+      flashSaved();
+      document.getElementById("settingsPassword").value = "";
+      document.getElementById("settingsPasswordConfirm").value = "";
+    }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
 
   // ---------- STUDENTS ----------
   function renderStudents() {
-    const students = loadData("lampagchee_students", []);
     const list = document.getElementById("studentList");
-    if (students.length === 0) {
-      list.innerHTML = '<div class="empty-note">ยังไม่มีบัญชีนักเรียน</div>';
-      return;
-    }
-    list.innerHTML = students.map(s => `
-      <div class="list-item">
-        <div class="list-item-main">
-          <div class="list-item-title">${escapeHtml(s.name)}</div>
-          <div class="list-item-sub">ชั้น ${escapeHtml(s.class || "-")} · รหัสนักเรียน: ${escapeHtml(s.studentId)}</div>
+    list.innerHTML = '<div class="empty-note">กำลังโหลด...</div>';
+    fbLoadList("students").then(students => {
+      if (students.length === 0) {
+        list.innerHTML = '<div class="empty-note">ยังไม่มีบัญชีนักเรียน</div>';
+        return;
+      }
+      list.innerHTML = students.map(s => `
+        <div class="list-item">
+          <div class="list-item-main">
+            <div class="list-item-title">${escapeHtml(s.name)}</div>
+            <div class="list-item-sub">ชั้น ${escapeHtml(s.class || "-")} · รหัสนักเรียน: ${escapeHtml(s.studentId)}</div>
+          </div>
+          <div class="list-item-actions">
+            <button class="btn btn-secondary" onclick="editStudent('${s.id}')">แก้ไข</button>
+            <button class="btn btn-danger" onclick="deleteStudent('${s.id}')">ลบ</button>
+          </div>
         </div>
-        <div class="list-item-actions">
-          <button class="btn btn-secondary" onclick="editStudent('${s.id}')">แก้ไข</button>
-          <button class="btn btn-danger" onclick="deleteStudent('${s.id}')">ลบ</button>
-        </div>
-      </div>
-    `).join("");
+      `).join("");
+    }).catch(() => { list.innerHTML = '<div class="empty-note">โหลดข้อมูลไม่สำเร็จ</div>'; });
   }
   function saveStudent() {
     const name = document.getElementById("studentName").value.trim();
@@ -748,42 +812,38 @@
     }
 
     const editId = document.getElementById("studentEditId").value;
-    let students = loadData("lampagchee_students", []);
 
-    const duplicate = students.find(s => s.studentId === studentId && s.id !== editId);
-    if (duplicate) {
-      errorEl.textContent = "รหัสนักเรียนนี้ถูกใช้ไปแล้ว กรุณาใช้รหัสอื่น";
-      return;
-    }
-
-    if (editId) {
-      students = students.map(s => s.id === editId ? { ...s, name, class: studentClass, studentId, password } : s);
-    } else {
-      students.push({ id: uid(), name, class: studentClass, studentId, password });
-    }
-    saveData("lampagchee_students", students);
-    resetStudentForm();
-    renderStudents();
+    fbLoadList("students").then(students => {
+      const duplicate = students.find(s => s.studentId === studentId && s.id !== editId);
+      if (duplicate) {
+        errorEl.textContent = "รหัสนักเรียนนี้ถูกใช้ไปแล้ว กรุณาใช้รหัสอื่น";
+        return;
+      }
+      const id = editId || uid();
+      return fbSaveItem("students", id, { name, class: studentClass, studentId, password }).then(() => {
+        resetStudentForm();
+        renderStudents();
+        flashSaved();
+      });
+    }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
   function editStudent(id) {
-    const students = loadData("lampagchee_students", []);
-    const s = students.find(x => x.id === id);
-    if (!s) return;
-    document.getElementById("studentEditId").value = s.id;
-    document.getElementById("studentName").value = s.name;
-    document.getElementById("studentClass").value = s.class || "";
-    document.getElementById("studentUsername").value = s.studentId;
-    document.getElementById("studentPassword").value = s.password;
-    document.getElementById("studentFormTitle").textContent = "แก้ไขบัญชีนักเรียน";
-    document.getElementById("studentCancelBtn").style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    fbLoadList("students").then(students => {
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById("studentEditId").value = s.id;
+      document.getElementById("studentName").value = s.name;
+      document.getElementById("studentClass").value = s.class || "";
+      document.getElementById("studentUsername").value = s.studentId;
+      document.getElementById("studentPassword").value = s.password;
+      document.getElementById("studentFormTitle").textContent = "แก้ไขบัญชีนักเรียน";
+      document.getElementById("studentCancelBtn").style.display = "inline-block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
   function deleteStudent(id) {
     if (!confirm("ต้องการลบบัญชีนักเรียนนี้หรือไม่?")) return;
-    let students = loadData("lampagchee_students", []);
-    students = students.filter(s => s.id !== id);
-    saveData("lampagchee_students", students);
-    renderStudents();
+    fbDeleteItem("students", id).then(renderStudents).catch(() => flashError("ลบไม่สำเร็จ ลองใหม่อีกครั้ง"));
   }
   function resetStudentForm() {
     document.getElementById("studentEditId").value = "";
