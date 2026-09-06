@@ -269,11 +269,11 @@
       <span class="site-name">Lampagchee School</span>
     </div>
     <div class="navbar-links" id="navLinks">
-      <a href="#home">หน้าแรก</a>
-      <a href="#about">ข้อมูลพื้นฐาน</a>
+      <a href="#" onclick="scrollToSection('home'); return false;">หน้าแรก</a>
+      <a href="#" onclick="scrollToSection('about'); return false;">ข้อมูลพื้นฐาน</a>
       <a href="#" onclick="showStaffNotice(); return false;">ทำเนียบบุคลากร</a>
-      <a href="#news">ข่าวสาร</a>
-      <a href="#contact">ติดต่อเรา</a>
+      <a href="#" onclick="scrollToSection('news'); return false;">ข่าวสาร</a>
+      <a href="#" onclick="scrollToSection('contact'); return false;">ติดต่อเรา</a>
       <span id="authLinks"></span>
     </div>
     <button class="navbar-toggle" id="navToggle" aria-label="เมนู">☰</button>
@@ -368,6 +368,7 @@
     } else {
       preview.innerHTML = news.slice().reverse().slice(0, 5).map(n => `
         <div class="news-preview-item">
+          ${n.image ? `<img src="${n.image}" alt="" style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; margin-bottom:12px; display:block;">` : ""}
           <div class="news-title">${escapeHtml(n.title)}</div>
           <div class="news-date">${n.date || ""}</div>
           <div class="news-snip">${escapeHtml(n.content)}</div>
@@ -436,6 +437,13 @@
   }
 
   // ---------- Staff "under development" notice ----------
+  // ---------- Smooth scroll without changing the URL hash ----------
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("navLinks").classList.remove("open");
+  }
+
   function showStaffNotice() {
     document.getElementById("staffModalOverlay").style.display = "flex";
     document.getElementById("navLinks").classList.remove("open");

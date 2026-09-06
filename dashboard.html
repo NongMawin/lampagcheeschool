@@ -265,6 +265,14 @@
           <label>รายละเอียด</label>
           <textarea id="newsContent" placeholder="เนื้อหาข่าว..."></textarea>
         </div>
+        <div class="form-row">
+          <label>รูปภาพประกอบข่าว (ไม่บังคับ)</label>
+          <input type="file" id="newsImage" accept="image/*">
+          <div id="newsImagePreviewWrap" style="margin-top:10px; display:none;">
+            <img id="newsImagePreview" style="max-width:160px; border-radius:8px; display:block;">
+            <button type="button" class="btn btn-secondary" style="margin-top:6px;" onclick="removeNewsImage()">ลบรูปนี้</button>
+          </div>
+        </div>
         <div class="form-actions">
           <button class="btn btn-primary" onclick="saveNews()">บันทึกข่าว</button>
           <button class="btn btn-secondary" id="newsCancelBtn" style="display:none" onclick="resetNewsForm()">ยกเลิกแก้ไข</button>
@@ -515,6 +523,28 @@
   }
 
   // ---------- NEWS ----------
+  let newsImageData = null;
+  document.getElementById("newsImage").addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) { return; }
+    if (file.size > 700 * 1024) {
+      alert("ไฟล์รูปใหญ่เกินไป (เกิน 700KB) กรุณาเลือกรูปที่มีขนาดเล็กลง");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      newsImageData = ev.target.result;
+      document.getElementById("newsImagePreview").src = newsImageData;
+      document.getElementById("newsImagePreviewWrap").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+  function removeNewsImage() {
+    newsImageData = "__REMOVE__";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("newsImagePreviewWrap").style.display = "none";
+  }
   function renderNews() {
     const list = document.getElementById("newsList");
     list.innerHTML = '<div class="empty-note">กำลังโหลด...</div>';
@@ -525,6 +555,7 @@
       }
       list.innerHTML = news.slice().reverse().map(n => `
         <div class="list-item">
+          ${n.image ? `<img src="${n.image}" style="width:64px; height:64px; object-fit:cover; border-radius:8px; flex-shrink:0;" alt="">` : ""}
           <div class="list-item-main">
             <div class="list-item-title">${escapeHtml(n.title)}</div>
             <div class="list-item-sub">${n.date || ""}</div>
@@ -545,11 +576,27 @@
     if (!title || !content) { alert("กรุณากรอกหัวข้อและรายละเอียดข่าว"); return; }
     const editId = document.getElementById("newsEditId").value;
     const id = editId || uid();
-    fbSaveItem("news", id, { title, date, content }).then(() => {
-      resetNewsForm();
-      renderNews();
-      flashSaved();
-    }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
+
+    const proceed = (image) => {
+      fbSaveItem("news", id, { title, date, content, image: image || null }).then(() => {
+        resetNewsForm();
+        renderNews();
+        flashSaved();
+      }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
+    };
+
+    if (newsImageData === "__REMOVE__") {
+      proceed(null);
+    } else if (newsImageData) {
+      proceed(newsImageData);
+    } else if (editId) {
+      fbLoadList("news").then(news => {
+        const existing = news.find(n => n.id === editId);
+        proceed(existing ? existing.image : null);
+      });
+    } else {
+      proceed(null);
+    }
   }
   function editNews(id) {
     fbLoadList("news").then(news => {
@@ -561,6 +608,14 @@
       document.getElementById("newsContent").value = n.content;
       document.getElementById("newsFormTitle").textContent = "แก้ไขข่าว";
       document.getElementById("newsCancelBtn").style.display = "inline-block";
+      newsImageData = null;
+      document.getElementById("newsImage").value = "";
+      if (n.image) {
+        document.getElementById("newsImagePreview").src = n.image;
+        document.getElementById("newsImagePreviewWrap").style.display = "block";
+      } else {
+        document.getElementById("newsImagePreviewWrap").style.display = "none";
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
@@ -575,6 +630,9 @@
     document.getElementById("newsContent").value = "";
     document.getElementById("newsFormTitle").textContent = "เพิ่มข่าวใหม่";
     document.getElementById("newsCancelBtn").style.display = "none";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("newsImagePreviewWrap").style.display = "none";
+    newsImageData = null;
   }
 
   // ---------- GALLERY ----------
