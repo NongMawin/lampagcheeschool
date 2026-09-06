@@ -368,7 +368,7 @@
     } else {
       preview.innerHTML = news.slice().reverse().slice(0, 5).map(n => `
         <div class="news-preview-item">
-          ${n.image ? `<img src="${n.image}" alt="" style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; margin-bottom:12px; display:block;">` : ""}
+          ${n.image ? `<img src="${n.image}" alt="" style="width:100%; max-height:420px; object-fit:contain; background:#f1f5f9; border-radius:8px; margin-bottom:12px; display:block;">` : ""}
           <div class="news-title">${escapeHtml(n.title)}</div>
           <div class="news-date">${n.date || ""}</div>
           <div class="news-snip">${escapeHtml(n.content)}</div>
