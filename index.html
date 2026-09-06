@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="images/logo.png">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBF-b1LA4tZb_2Z3ewbxWbScGrG4bF7s9E",
@@ -19,6 +20,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  const auth = firebase.auth();
 </script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
@@ -395,38 +397,37 @@
   });
 
   // ---------- Auth-aware nav + CTA ----------
-  const isAdminIn = sessionStorage.getItem("lampagchee_logged_in") === "true";
-  const isStudentIn = sessionStorage.getItem("lampagchee_student_logged_in") === "true";
-
   const authLinks = document.getElementById("authLinks");
   const ctaButtons = document.getElementById("ctaButtons");
+  const isStudentIn = sessionStorage.getItem("lampagchee_student_logged_in") === "true";
 
-  if (isAdminIn) {
-    authLinks.innerHTML = `
-      <a href="dashboard.html" class="btn-login">แดชบอร์ด</a>
-      <a href="#" onclick="adminLogout(); return false;">ออกจากระบบ</a>
-    `;
-    if (ctaButtons) {
-      ctaButtons.innerHTML = `<a href="dashboard.html" class="cta-admin">ไปที่แดชบอร์ด</a>`;
+  auth.onAuthStateChanged(function (user) {
+    if (user) {
+      authLinks.innerHTML = `
+        <a href="dashboard.html" class="btn-login">แดชบอร์ด</a>
+        <a href="#" onclick="adminLogout(); return false;">ออกจากระบบ</a>
+      `;
+      if (ctaButtons) {
+        ctaButtons.innerHTML = `<a href="dashboard.html" class="cta-admin">ไปที่แดชบอร์ด</a>`;
+      }
+    } else if (isStudentIn) {
+      authLinks.innerHTML = `
+        <a href="student-portal.html" class="btn-login">พอร์ทัลนักเรียน</a>
+        <a href="#" onclick="studentLogout(); return false;">ออกจากระบบ</a>
+      `;
+      if (ctaButtons) {
+        ctaButtons.innerHTML = `<a href="student-portal.html" class="cta-admin">ไปที่พอร์ทัลนักเรียน</a>`;
+      }
+    } else {
+      authLinks.innerHTML = `
+        <a href="login.html" class="btn-login">ผู้ดูแลระบบ</a>
+        <a href="student-login.html">นักเรียน</a>
+      `;
     }
-  } else if (isStudentIn) {
-    authLinks.innerHTML = `
-      <a href="student-portal.html" class="btn-login">พอร์ทัลนักเรียน</a>
-      <a href="#" onclick="studentLogout(); return false;">ออกจากระบบ</a>
-    `;
-    if (ctaButtons) {
-      ctaButtons.innerHTML = `<a href="student-portal.html" class="cta-admin">ไปที่พอร์ทัลนักเรียน</a>`;
-    }
-  } else {
-    authLinks.innerHTML = `
-      <a href="login.html" class="btn-login">ผู้ดูแลระบบ</a>
-      <a href="student-login.html">นักเรียน</a>
-    `;
-  }
+  });
 
   function adminLogout() {
-    sessionStorage.removeItem("lampagchee_logged_in");
-    window.location.reload();
+    auth.signOut().then(() => window.location.reload());
   }
   function studentLogout() {
     sessionStorage.removeItem("lampagchee_student_logged_in");

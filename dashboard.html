@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="images/logo.png">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBF-b1LA4tZb_2Z3ewbxWbScGrG4bF7s9E",
@@ -19,6 +20,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  const auth = firebase.auth();
 </script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
@@ -410,22 +412,25 @@
       </div>
 
       <div class="panel">
-        <h2>เปลี่ยนชื่อผู้ใช้ / รหัสผ่าน</h2>
+        <h2>เปลี่ยนรหัสผ่าน</h2>
         <div class="form-row">
-          <label>ชื่อผู้ใช้ใหม่</label>
-          <input type="text" id="settingsUsername">
+          <label>ชื่อผู้ใช้ปัจจุบัน</label>
+          <input type="text" id="settingsUsername" disabled style="background:#f1f5f9; color:#64748b;">
+        </div>
+        <div class="form-row">
+          <label>รหัสผ่านปัจจุบัน</label>
+          <input type="password" id="settingsCurrentPassword" placeholder="กรอกรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน">
         </div>
         <div class="form-row">
           <label>รหัสผ่านใหม่</label>
-          <input type="password" id="settingsPassword" placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน">
+          <input type="password" id="settingsPassword" placeholder="อย่างน้อย 6 ตัวอักษร">
         </div>
         <div class="form-row">
           <label>ยืนยันรหัสผ่านใหม่</label>
           <input type="password" id="settingsPasswordConfirm">
         </div>
         <p id="settingsError" class="error-msg" style="color:#dc2626; font-size:13px; margin-bottom:10px;"></p>
-        <button class="btn btn-primary" onclick="saveSettings()">บันทึกการตั้งค่า</button>
-        <span class="save-hint" id="settingsSaved">บันทึกแล้ว ✓</span>
+        <button class="btn btn-primary" onclick="saveSettings()">เปลี่ยนรหัสผ่าน</button>
       </div>
     </div>
 
@@ -435,12 +440,13 @@
 
 <script>
   // ---------- Auth guard ----------
-  if (sessionStorage.getItem("lampagchee_logged_in") !== "true") {
-    window.location.href = "login.html";
-  }
+  auth.onAuthStateChanged(function (user) {
+    if (!user) {
+      window.location.href = "login.html";
+    }
+  });
   document.getElementById("logoutBtn").addEventListener("click", function () {
-    sessionStorage.removeItem("lampagchee_logged_in");
-    window.location.href = "login.html";
+    auth.signOut().then(() => { window.location.href = "login.html"; });
   });
 
   // ---------- View switching ----------
@@ -461,7 +467,7 @@
   }
 
   // ---------- Firebase helpers ----------
-  // โหลด object เดี่ยว เช่น pages, contact, credentials
+  // โหลด object เดี่ยว เช่น pages, contact
   function fbLoadObject(path, fallback) {
     return db.ref(path).once("value").then(snap => {
       const val = snap.val();
@@ -748,31 +754,45 @@
 
   // ---------- SETTINGS ----------
   function loadSettings() {
-    fbLoadObject("credentials", { username: "admin", password: "lampagchee2026" }).then(creds => {
-      document.getElementById("settingsUsername").value = creds.username;
-      document.getElementById("settingsPassword").value = "";
-      document.getElementById("settingsPasswordConfirm").value = "";
-      document.getElementById("settingsError").textContent = "";
-    });
+    const user = auth.currentUser;
+    const email = user ? user.email : "";
+    const shownUsername = email.endsWith("@lampagcheeschool.local") ? email.replace("@lampagcheeschool.local", "") : email;
+    document.getElementById("settingsUsername").value = shownUsername;
+    document.getElementById("settingsCurrentPassword").value = "";
+    document.getElementById("settingsPassword").value = "";
+    document.getElementById("settingsPasswordConfirm").value = "";
+    document.getElementById("settingsError").textContent = "";
   }
   function saveSettings() {
-    const username = document.getElementById("settingsUsername").value.trim();
-    const password = document.getElementById("settingsPassword").value;
+    const currentPassword = document.getElementById("settingsCurrentPassword").value;
+    const newPassword = document.getElementById("settingsPassword").value;
     const confirmPw = document.getElementById("settingsPasswordConfirm").value;
     const errorEl = document.getElementById("settingsError");
     errorEl.textContent = "";
 
-    if (!username) { errorEl.textContent = "กรุณากรอกชื่อผู้ใช้"; return; }
-    if (password && password !== confirmPw) { errorEl.textContent = "รหัสผ่านใหม่ไม่ตรงกัน"; return; }
+    if (!currentPassword) { errorEl.textContent = "กรุณากรอกรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน"; return; }
+    if (!newPassword || newPassword.length < 6) { errorEl.textContent = "รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร"; return; }
+    if (newPassword !== confirmPw) { errorEl.textContent = "รหัสผ่านใหม่ไม่ตรงกัน"; return; }
 
-    fbLoadObject("credentials", { username: "admin", password: "lampagchee2026" }).then(creds => {
-      const updated = { username, password: password ? password : creds.password };
-      return fbSaveObject("credentials", updated);
+    const user = auth.currentUser;
+    if (!user) { errorEl.textContent = "เซสชันหมดอายุ กรุณาล็อกอินใหม่"; return; }
+
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+    user.reauthenticateWithCredential(cred).then(() => {
+      return user.updatePassword(newPassword);
     }).then(() => {
       flashSaved();
+      document.getElementById("settingsCurrentPassword").value = "";
       document.getElementById("settingsPassword").value = "";
       document.getElementById("settingsPasswordConfirm").value = "";
-    }).catch(() => flashError("บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง"));
+    }).catch(err => {
+      if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        errorEl.textContent = "รหัสผ่านปัจจุบันไม่ถูกต้อง";
+      } else {
+        errorEl.textContent = "เปลี่ยนรหัสผ่านไม่สำเร็จ ลองใหม่อีกครั้ง";
+      }
+      console.error(err);
+    });
   }
 
   // ---------- STUDENTS ----------

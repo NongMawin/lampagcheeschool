@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="images/logo.png">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBF-b1LA4tZb_2Z3ewbxWbScGrG4bF7s9E",
@@ -19,6 +20,7 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  const auth = firebase.auth();
 </script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Tahoma','Sarabun',sans-serif; }
@@ -72,12 +74,8 @@
   </div>
 
 <script>
-  // ค่าเริ่มต้น (ใช้ตอนยังไม่เคยเปลี่ยนรหัสผ่านในหน้าตั้งค่าระบบ)
-  const DEFAULT_CREDENTIALS = { username: "admin", password: "lampagchee2026" };
-
-  function getCredentials() {
-    return db.ref("credentials").once("value").then(snap => snap.val() || DEFAULT_CREDENTIALS);
-  }
+  // ชื่อผู้ใช้ "admin" จะถูกแปลงเป็นอีเมลจำลองนี้เบื้องหลังก่อนเช็คกับ Firebase Authentication
+  const USERNAME_TO_EMAIL_SUFFIX = "@lampagcheeschool.local";
 
   const loginForm = document.getElementById("loginForm");
   const errorMsg = document.getElementById("errorMsg");
@@ -85,24 +83,22 @@
 
   loginForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const username = document.getElementById("username").value.trim();
+    const username = document.getElementById("username").value.trim().toLowerCase();
     const password = document.getElementById("password").value;
+    const email = username.includes("@") ? username : username + USERNAME_TO_EMAIL_SUFFIX;
 
     submitBtn.disabled = true;
     submitBtn.textContent = "กำลังตรวจสอบ...";
+    errorMsg.textContent = "";
 
-    getCredentials().then(creds => {
-      if (username === creds.username && password === creds.password) {
-        sessionStorage.setItem("lampagchee_logged_in", "true");
-        errorMsg.textContent = "";
-        window.location.href = "index.html";
-      } else {
-        errorMsg.textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
-        submitBtn.disabled = false;
-        submitBtn.textContent = "เข้าสู่ระบบ";
-      }
+    auth.signInWithEmailAndPassword(email, password).then(() => {
+      window.location.href = "index.html";
     }).catch(err => {
-      errorMsg.textContent = "เชื่อมต่อฐานข้อมูลไม่ได้ ลองใหม่อีกครั้ง";
+      if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+        errorMsg.textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      } else {
+        errorMsg.textContent = "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง";
+      }
       submitBtn.disabled = false;
       submitBtn.textContent = "เข้าสู่ระบบ";
       console.error(err);
