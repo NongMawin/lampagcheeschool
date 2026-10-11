@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โรงเรียนลำผักชี</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Krub:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1e3a8a;--green:#059669;--gold:#d97706;--bg:#f8fafc;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Krub',sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;min-height:100vh;display:flex;flex-direction:column}
+main{flex:1;width:min(1180px,92%);margin:0 auto;padding:6.5rem 0 3rem}
+h1{font-size:clamp(2rem,5.5vw,3.4rem);line-height:1.2;color:var(--blue)}
+h2{font-size:clamp(1.3rem,3vw,1.8rem);color:var(--blue);margin-bottom:1rem}
+h3{color:var(--blue);margin-bottom:.5rem}
+.hidden{display:none!important}.muted{color:var(--muted);font-size:.9rem}
+/* อนิเมชันเปิดเว็บ: เฟดลอยขึ้นทีละส่วนตามค่า --i */
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.rise{animation:rise .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*90ms)}
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:3px solid var(--gold);box-shadow:0 4px 18px rgba(30,58,138,.1)}
+.nav-in{width:min(1180px,94%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;gap:1rem}
+.brand{display:flex;align-items:center;gap:.7rem;cursor:pointer;color:var(--blue);font-weight:700}
+/* ===== จุดใส่โลโก้: เปลี่ยนไฟล์ที่ <img id="logo"> ในแถบเมนูและหน้าแรก ===== */
+.logo{width:48px;height:48px;px;px;object-fit:contain}
+.menu{display:flex;gap:.3rem;flex-wrap:wrap}
+.menu button{font:inherit;border:0;background:none;padding:.45rem .9rem;border-radius:999px;cursor:pointer;color:var(--ink);transition:.25s}
+.menu button:hover{background:rgba(30,58,138,.1)}.menu button.on{background:var(--blue);color:#fff}
+.burger{display:none;font-size:1.5rem;border:0;background:none;cursor:pointer;color:var(--blue)}
+.btn{font:inherit;font-weight:500;border:0;border-radius:12px;padding:.65rem 1.3rem;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,.15)}
+.b1{background:var(--blue);color:#fff}.b2{background:var(--gold);color:#fff}.b3{background:#fff;border:1.5px solid var(--green);color:var(--green)}.b4{background:#dc2626;color:#fff}
+.sm{padding:.25rem .7rem;font-size:.8rem;border-radius:9px}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:center;margin-bottom:3rem;padding:2rem;border-radius:28px;background:linear-gradient(135deg,rgba(30,58,138,.08),rgba(5,150,105,.12))}
+.logo{width:62px;height:62px;object-fit:contain}
+.hero .logo{width:260px;height:260px;max-width:100%;margin:0 auto;display:block}
+.hero p{margin:1rem 0 1.4rem;max-width:56ch;color:#334155}
+.acts{display:flex;gap:.7rem;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.3rem;margin-bottom:2rem}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.card{background:#fff;border-radius:18px;padding:1.4rem;border:1px solid var(--line);box-shadow:0 8px 24px rgba(30,58,138,.08)}
+.news{padding:0;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.news:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(30,58,138,.18)}
+.news img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--line)}
+.news div{padding:1.1rem}.news time{color:var(--muted);font-size:.82rem}
+.narrow{max-width:430px;margin:2rem auto}
+label{display:block;font-size:.88rem;font-weight:500;margin:.8rem 0 .2rem}
+input,select,textarea{width:100%;font:inherit;padding:.6rem .85rem;border:1.5px solid var(--line);border-radius:11px;background:#fff}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 4px rgba(5,150,105,.15)}
+form .btn{margin-top:1rem}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.code{font-size:1.7rem;font-weight:700;letter-spacing:.12em;color:var(--blue)}
+.result{margin-top:1rem;padding:1rem;border-radius:12px;background:rgba(5,150,105,.1);border:1px dashed var(--green)}
+.preview{max-width:100%;max-height:140px;margin-top:.6rem;border-radius:10px}
+.list div{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:480px}
+th{background:var(--blue);color:#fff;text-align:left;padding:.6rem;font-weight:500}td{padding:.6rem;border-bottom:1px solid var(--line)}
+.badge{display:inline-block;font-size:.75rem;padding:.1rem .7rem;border-radius:999px;background:var(--gold);color:#fff}
+#toasts{position:fixed;right:1rem;bottom:1rem;z-index:100;display:flex;flex-direction:column;gap:.5rem}
+.toast{background:var(--green);color:#fff;padding:.8rem 1.2rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.2);animation:rise .35s both}.toast.err{background:#dc2626}
+footer{text-align:center;padding:1.3rem;color:var(--muted);font-size:.88rem}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.burger{display:block}
+ .menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:#fff;padding:.8rem;box-shadow:0 10px 20px rgba(0,0,0,.1)}.menu.open{display:flex}.menu button{text-align:left}}
+@media(max-width:520px){.row{grid-template-columns:1fr}.brand span{font-size:.95rem}}
+@media(min-width:1900px){html{font-size:19px}main,.nav-in{width:min(1500px,90%)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* การ์ดประวัติกว้างเต็มแถว และแบ่งข้อความเป็นคอลัมน์ให้อ่านง่าย */
+#v-about article:first-child{grid-column:1/-1}
+#v-about article:first-child p{column-width:22rem;column-gap:2.2rem;line-height:1.85}
+</style>
+</head>
+<body>
+
+<header class="nav rise">
+  <div class="nav-in">
+    <div class="brand" data-go="home">
+      <!-- ใส่โลโก้จริง: วางไฟล์ logo.png ไว้โฟลเดอร์เดียวกับ index.html หรือแก้ src เป็นลิงก์รูป -->
+      <img class="logo" src="png/lampagchee.png" alt="โลโก้โรงเรียนลำผักชี" onerror="this.style.visibility='hidden'">
+      <span>โรงเรียนลำผักชี</span>
+    </div>
+    <button class="burger" id="burger" aria-label="เมนู">☰</button>
+    <nav class="menu" id="menu">
+      <button data-go="home">หน้าแรก</button>
+      <button data-go="about">เกี่ยวกับโรงเรียน</button>
+      <button data-go="student">ระบบนักเรียน</button>
+      <button data-go="admin">แอดมิน</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- 1) หน้าแรก -->
+<section class="view" id="v-home">
+  <div class="hero">
+    <div>
+      <h1 class="rise" style="--i:1">ร่มรื่นด้วยความรู้<br>เติบโตด้วยคุณธรรม</h1>
+      <p class="rise" style="--i:2">ยินดีต้อนรับสู่โรงเรียนลำผักชี ติดตามข่าวสารและเข้าระบบนักเรียนได้ที่นี่</p>
+      <div class="acts rise" style="--i:3">
+        <button class="btn b1" data-go="student">เข้าระบบนักเรียน</button>
+        <button class="btn b3" data-go="about">รู้จักโรงเรียน</button>
+      </div>
+    </div>
+    <img class="logo rise" style="--i:4" src="png/lampagchee.png" alt="โลโก้โรงเรียน" onerror="this.style.visibility='hidden'">
+  </div>
+  <h2 class="rise" style="--i:5">ข่าวสารประชาสัมพันธ์</h2>
+  <div class="grid rise" style="--i:6" id="newsGrid"></div>
+</section>
+
+<!-- 2) เกี่ยวกับโรงเรียน -->
+<section class="view hidden" id="v-about">
+  <h2 class="rise">เกี่ยวกับโรงเรียน</h2>
+  <div class="grid two">
+    <article class="card rise" style="--i:1"><h3>ประวัติความเป็นมา</h3><p>   โรงเรียนลำผักชี เดิมชื่อว่า "โรงเรียนประชาบาลตำบลลำผักชี" อำเภอหนองจอก กรุงเทพมหานคร ตั้งขึ้นเมื่อวันที่ 25 กรกฎาคม พ.ศ.2483 โดยนายอำเภอตั้งขึ้น ดำรงโรงเรียน โดยวิธีโรงเรียนประชาบาล จัดทำการเรียนการสอนตามหลักสูตรประถมศึกษาประชาบาล และเปิดสอนครั้งแรกโดยอาศัยโรงนา ที่นายบุง วัลลิภะคะ เป็นราษฎรในท้องถิ่น ได้มีจิตศรัทธาบริจาคโรงนาให้เป็นที่เรียนขนาด 6x15 เมตร ประกอบขึ้นด้วยไม้ไผ่ ในเวลาต่อมาโรงนาที่ใช้จัดการเรียนการสอนเกิดผุพังและหลังคารั่ว นายตาด แย้มจันทร์  ครูใหญ่ในขณะนั้นจึงได้บอกบุญกับบรรดาผู้ปกครองเพื่อหาทุนในการซ่อมแซมตลอดมาในปี พ.ศ.2499 ได้จัดสร้างอาคารเรียนหลังใหม่ขึ้นในเดือนพฤศจิกายน 2499 เป็นอาคารเรียนแบบ ป.1 กรมสามัญศึกษา ขนาด 8x15 เมตร จากนั้นได้ย้ายไปสร้างที่แห่งใหม่ ในที่ดินของ นายเล็ก - นางรอด ดีประเสริฐ ซึ่งได้อุทิศให้กับโรงเรียน เป็นพื้นที่ 2 ไร่ ขนาด 40x50 เมตร แต่ทั้งนี้พื้นที่ดังกล่าวเป็นที่ลุ่ม นายตาด แย้มจันทร์ จึงได้ติดต่อเรือขุดมาช่วยตักดิน เพื่อปรับสภาพพื้นที่ให้เหมาะสมกับการจัดกิจกรรมการเรียนการสอนมาจนถึงปัจจุบัน</p></article>
+    <article class="card rise" style="--i:2"><h3>วิสัยทัศน์</h3><p>โรงเรียนลำผักชี มุ่งเน้นพัฒนาผู้เรียน ตามมาตรฐานการศึกษากรุงเทพมหานคร สอดคล้องกับแนวทางการจัดการเรียนรู้ในศตวรรษที่ ๒๑ โดยความร่วมมือของทุกภาคส่วนแบบยั่งยืน</p></article>
+    <article class="card rise" style="--i:3"><h3>ผู้บริหาร</h3><p>ผู้อำนวยการ: นางพัตรพิมล ผิวขาว </p></article>
+  </div>
+</section>
+
+<!-- 3) เข้าสู่ระบบนักเรียน -->
+<section class="view hidden" id="v-login">
+  <form id="loginForm" class="card narrow rise" autocomplete="off">
+    <h2>เข้าสู่ระบบนักเรียน</h2>
+    <p class="muted">กรอกรหัสนักเรียนที่ได้รับจากแอดมิน เช่น LPC-AB12-CD34-EF56</p>
+    <label for="code">รหัสนักเรียน</label><input id="code" placeholder="LPC-XXXX-XXXX-XXXX" required>
+    <button class="btn b1">เข้าสู่ระบบ</button>
+  </form>
+</section>
+
+<!-- 4) แดชบอร์ดนักเรียน -->
+<section class="view hidden" id="v-dash">
+  <div class="head rise"><h2 id="dHello"></h2><button class="btn b3" id="studentOut">ออกจากระบบ</button></div>
+  <div class="grid two">
+    <article class="card rise" style="--i:1"><h3>ข้อมูลส่วนตัว</h3><div id="dInfo"></div></article>
+    <article class="card rise" style="--i:2"><h3>การบ้านและประกาศ</h3><div id="dHw" class="list"></div></article>
+  </div>
+</section>
+
+<!-- 5) แอดมิน -->
+<section class="view hidden" id="v-admin">
+  <form id="adminGate" class="card narrow rise" autocomplete="off">
+    <h2>เข้าสู่ระบบแอดมิน</h2>
+    <div id="emailBox"><label for="memail">อีเมลแอดมิน</label><input id="memail" type="email"></div>
+    <label for="mkey">รหัสผ่าน</label><input id="mkey" type="password" required>
+    <button class="btn b1">ปลดล็อก</button>
+  </form>
+
+  <div id="adminPanel" class="hidden">
+    <div class="head rise"><h2>แผงควบคุมแอดมิน</h2><button class="btn b3" id="adminOut">ออกจากระบบ</button></div>
+    <div class="grid two">
+      <!-- ฟอร์มข่าว: เพิ่ม/แก้ไข พร้อมรูปภาพ -->
+      <form id="newsForm" class="card rise" style="--i:1">
+        <h3 id="nHead">เพิ่มข่าวสาร</h3>
+        <label>หัวข้อ</label><input id="nTitle" required>
+        <label>เนื้อหา</label><textarea id="nBody" rows="3" required></textarea>
+        <!-- จุดใส่ลิงก์รูปภาพข่าว (Image URL) หรือเลือกอัปโหลดไฟล์ด้านล่าง -->
+        <label>ลิงก์รูปภาพ (Image URL)</label><input id="nImg" placeholder="https://example.com/news.jpg">
+        <label>หรืออัปโหลดรูปภาพ</label><input id="nFile" type="file" accept="image/*">
+        <img id="nPrev" class="preview hidden" alt="ตัวอย่างรูป">
+        <button class="btn b2" id="nSave">บันทึกข่าว</button>
+        <button type="button" class="btn b3 hidden" id="nCancel">ยกเลิกการแก้ไข</button>
+        <div class="list" id="newsAdmin"></div>
+      </form>
+
+      <div>
+        <form id="stuForm" class="card rise" style="--i:2">
+          <h3>สร้างรหัสนักเรียน</h3>
+          <label>ชื่อ-นามสกุล</label><input id="sName" required>
+          <div class="row"><div><label>ชั้นเรียน</label><input id="sClass" placeholder="ม.1/1" required></div>
+          <div><label>เลขประจำตัว</label><input id="sNo" required></div></div>
+          <button class="btn b1">สร้างรหัสและบันทึก</button>
+          <div id="sResult" class="result hidden"></div>
+        </form>
+        <form id="hwForm" class="card rise" style="--i:3;margin-top:1.3rem">
+          <h3>โพสต์การบ้าน/ประกาศ</h3>
+          <label>หัวข้อ</label><input id="hTitle" required>
+          <label>รายละเอียด</label><textarea id="hBody" rows="2" required></textarea>
+          <label>ชั้นเรียน (เว้นว่าง = ทุกชั้น)</label><input id="hClass">
+          <button class="btn b2">โพสต์</button>
+          <div class="list" id="hwAdmin"></div>
+        </form>
+      </div>
+    </div>
+    <article class="card rise" style="--i:4">
+      <h3>รายชื่อนักเรียน</h3>
+      <div class="wrap"><table><thead><tr><th>ชื่อ</th><th>ชั้น</th><th>เลขประจำตัว</th><th>รหัส</th><th></th></tr></thead><tbody id="stuRows"></tbody></table></div>
+    </article>
+  </div>
+</section>
+</main>
+
+<footer>© 2569 โรงเรียนลำผักชี (Lam Phak Chi School)</footer>
+<div id="toasts"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   วิธีเชื่อมต่อ Firebase (ทำครั้งเดียว)
+   1) เข้า console.firebase.google.com > สร้างโปรเจกต์ > Add app (Web)
+   2) Build > Realtime Database > Create database (เริ่มแบบ test mode ได้)
+   3) คัดลอกค่า firebaseConfig มาวางทับด้านล่าง
+   4) ค่า databaseURL ดูได้ที่แท็บ Data ของ Realtime Database (ขึ้นต้น https://...)
+   ถ้ายังไม่ใส่ ระบบจะรันโหมดทดลองด้วย localStorage ให้ทันที
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAJ_PTbfKTGOCdlRYZ-mVIh_jNBgRjjUTA',
+  authDomain: 'lampagchee-13506.firebaseapp.com',
+  databaseURL: 'https://lampagchee-13506-default-rtdb.firebaseio.com',
+  projectId: 'lampagchee-13506',
+  storageBucket: 'lampagchee-13506.firebasestorage.app',
+  messagingSenderId: '201576534860',
+  appId: '1:201576534860:web:5ef1ab61f3d4f6788735e9'
+};
+// รหัสแอดมินสำหรับ "โหมดทดลอง" เท่านั้น เมื่อเชื่อม Firebase แล้วแอดมินล็อกอินด้วยอีเมล/รหัสผ่านของ Firebase Authentication
+const ADMIN_KEY = 'lpc-admin-2569';
+
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// เข้ารหัส SHA-256: ใช้แปลงรหัสนักเรียนเป็นชื่อโหนดในฐานข้อมูล ทำให้ดูรายชื่อรหัสทั้งหมดไม่ได้
+const sha = async t => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map(b => b.toString(16).padStart(2, '0')).join('');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const fmt = ts => new Date(ts).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'numeric'});
+function toast(m, err) {
+  const e = document.createElement('div'); e.className = 'toast' + (err ? ' err' : ''); e.textContent = m;
+  $('#toasts').append(e); setTimeout(() => e.remove(), 3200);
+}
+
+/* ---------- ชั้นฐานข้อมูล: Realtime Database (real-time) หรือ localStorage ---------- */
+const Db = {
+  mode: 'local', l: {},
+  async init() {
+    if (FIREBASE_CONFIG.apiKey.startsWith('YOUR')) return;
+    try {
+      const v = '10.12.2', base = `https://www.gstatic.com/firebasejs/${v}/`;
+      const app = await import(base + 'firebase-app.js'), a = app.initializeApp(FIREBASE_CONFIG);
+      Db.fs = await import(base + 'firebase-database.js'); Db.db = Db.fs.getDatabase(a);
+      Db.au = await import(base + 'firebase-auth.js'); Db.auth = Db.au.getAuth(a);
+      Db.mode = 'firebase';
+    } catch (e) { console.error(e); toast('เชื่อมต่อ Firebase ไม่ได้ ใช้โหมดทดลองแทน', true); }
+  },
+  // ติดตามข้อมูลของ collection แบบ real-time
+  watch(col, cb) {
+    if (Db.mode === 'firebase') {
+      const {ref, onValue} = Db.fs;
+      return onValue(ref(Db.db, col), s => cb(Object.entries(s.val() || {}).map(([id, d]) => ({id, ...d})).sort((a, b) => b.ts - a.ts)),
+        err => console.warn(col, err.message));
+    }
+    (Db.l[col] ??= []).push(cb); cb(Db.read(col));
+    return () => { Db.l[col] = Db.l[col].filter(f => f !== cb); };
+  },
+  read: col => JSON.parse(localStorage.getItem('lpc_' + col) || '[]').sort((a, b) => b.ts - a.ts),
+  write(col, list) { localStorage.setItem('lpc_' + col, JSON.stringify(list)); (Db.l[col] || []).forEach(f => f(Db.read(col))); },
+  // อ่านข้อมูลรายการเดียวจากโหนดที่ระบุ (นักเรียนอ่านได้เฉพาะโหนดของตัวเองที่รู้รหัส)
+  async get(col, id) {
+    if (Db.mode === 'firebase') { const v = (await Db.fs.get(Db.fs.ref(Db.db, `${col}/${id}`))).val(); return v ? {id, ...v} : null; }
+    return Db.read(col).find(x => x.id === id) || null;
+  },
+  async set(col, id, o) {
+    o.ts = Date.now();
+    if (Db.mode === 'firebase') return Db.fs.set(Db.fs.ref(Db.db, `${col}/${id}`), o);
+    Db.write(col, [...Db.read(col).filter(x => x.id !== id), {...o, id}]);
+  },
+  async add(col, o) {
+    o.ts = Date.now();
+    if (Db.mode === 'firebase') return Db.fs.push(Db.fs.ref(Db.db, col), o);
+    Db.write(col, [...Db.read(col), {...o, id: uid()}]);
+  },
+  async update(col, id, o) {
+    if (Db.mode === 'firebase') return Db.fs.update(Db.fs.ref(Db.db, `${col}/${id}`), o);
+    Db.write(col, Db.read(col).map(x => x.id === id ? {...x, ...o} : x));
+  },
+  async del(col, id) {
+    if (Db.mode === 'firebase') return Db.fs.remove(Db.fs.ref(Db.db, `${col}/${id}`));
+    Db.write(col, Db.read(col).filter(x => x.id !== id));
+  }
+};
+
+/* ---------- สถานะแอป (ไม่ใช้ # ใน URL) ---------- */
+const S = {news: [], students: [], homework: [], editId: null, img: '', me: null, admin: false, unStu: null};
+const session = {
+  get: () => JSON.parse(localStorage.getItem('lpc_session') || '{}'),
+  set: o => localStorage.setItem('lpc_session', JSON.stringify({...session.get(), ...o}))
+};
+const me = () => S.me;
+
+function go(page, keep) {
+  // หน้า "ระบบนักเรียน" เลือกแสดงล็อกอินหรือแดชบอร์ดตามสถานะ
+  const view = page === 'student' ? (me() ? 'dash' : 'login') : page;
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('hidden', v.id !== 'v-' + view));
+  document.querySelectorAll('.menu button').forEach(b => b.classList.toggle('on', b.dataset.go === page));
+  $('#menu').classList.remove('open');
+  const admin = S.admin;
+  $('#adminGate').classList.toggle('hidden', admin); $('#adminPanel').classList.toggle('hidden', !admin);
+  if (!keep) window.scrollTo({top: 0, behavior: 'smooth'});
+  S.page = page;
+}
+const refresh = () => { if (S.page) go(S.page, true); };
+// โหลดรายชื่อนักเรียนเฉพาะตอนเป็นแอดมินเท่านั้น (ผู้ใช้ทั่วไปไม่เคยได้รับรายชื่อ/รหัส)
+function adminSync() {
+  if (S.admin && !S.unStu) S.unStu = Db.watch('students', l => { S.students = l; render(); });
+  if (!S.admin) { S.unStu?.(); S.unStu = null; S.students = []; }
+  render();
+}
+
+/* ---------- แสดงผล ---------- */
+function render() {
+  $('#newsGrid').innerHTML = S.news.map(n => `<article class="card news">
+    ${n.image ? `<img src="${esc(n.image)}" alt="${esc(n.title)}" loading="lazy">` : ''}
+    <div><h3>${esc(n.title)}</h3><p>${esc(n.body)}</p><time>${fmt(n.ts)}</time></div></article>`).join('') || '<p class="muted">ยังไม่มีข่าวสาร</p>';
+  $('#newsAdmin').innerHTML = S.news.map(n => `<div><span>${esc(n.title)}</span><span>
+    <button type="button" class="btn b3 sm" data-edit="${n.id}">แก้ไข</button>
+    <button type="button" class="btn b4 sm" data-delnews="${n.id}">ลบ</button></span></div>`).join('');
+  $('#stuRows').innerHTML = S.students.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${esc(s.no)}</td><td><b>${esc(s.code)}</b></td>
+    <td><button class="btn b4 sm" data-delstu="${s.id}">ลบ</button></td></tr>`).join('') || '<tr><td colspan="5" class="muted">ยังไม่มีนักเรียน</td></tr>';
+  $('#hwAdmin').innerHTML = S.homework.map(h => `<div><span>${esc(h.title)} ${h.cls ? '(' + esc(h.cls) + ')' : ''}</span>
+    <button type="button" class="btn b4 sm" data-delhw="${h.id}">ลบ</button></div>`).join('');
+  const s = me();
+  if (s) {
+    $('#dHello').textContent = 'สวัสดี ' + s.name;
+    $('#dInfo').innerHTML = `<p>ชั้นเรียน: <b>${esc(s.cls)}</b></p><p>เลขประจำตัว: <b>${esc(s.no)}</b></p><p>รหัสนักเรียน: <span class="badge">${esc(s.code)}</span></p>`;
+    $('#dHw').innerHTML = S.homework.filter(h => !h.cls || h.cls === s.cls).map(h => `<div style="display:block"><b>${esc(h.title)}</b><br>${esc(h.body)}<br><small class="muted">${fmt(h.ts)}</small></div>`).join('') || '<p class="muted">ยังไม่มีการบ้าน</p>';
+  }
+  refresh();
+}
+
+/* ---------- รูปภาพข่าว: ย่อรูปที่อัปโหลดแล้วเก็บเป็น Data URL ใน Realtime Database (ไม่ต้องใช้ Storage) ---------- */
+function shrink(file) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => {
+      const k = Math.min(1, 900 / im.width), c = document.createElement('canvas');
+      c.width = im.width * k; c.height = im.height * k; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/jpeg', .78)); }; im.src = r.result; };
+    r.readAsDataURL(file);
+  });
+}
+function setPreview(src) { const p = $('#nPrev'); p.src = src || ''; p.classList.toggle('hidden', !src); }
+function resetNews() { $('#newsForm').reset(); S.editId = null; S.img = ''; setPreview(''); $('#nHead').textContent = 'เพิ่มข่าวสาร'; $('#nCancel').classList.add('hidden'); }
+
+/* ---------- ผูกอีเวนต์ ---------- */
+document.addEventListener('click', e => {
+  const t = e.target, d = t.dataset;
+  if (t.closest('[data-go]')) go(t.closest('[data-go]').dataset.go);
+  if (d.edit) { const n = S.news.find(x => x.id === d.edit); S.editId = n.id; S.img = '';
+    $('#nTitle').value = n.title; $('#nBody').value = n.body; $('#nImg').value = n.image?.startsWith('data:') ? '' : (n.image || '');
+    S.img = n.image?.startsWith('data:') ? n.image : ''; setPreview(n.image);
+    $('#nHead').textContent = 'แก้ไขข่าวสาร'; $('#nCancel').classList.remove('hidden'); $('#newsForm').scrollIntoView({behavior:'smooth'}); }
+  if (d.delnews && confirm('ลบข่าวนี้?')) Db.del('news', d.delnews).then(() => toast('ลบข่าวแล้ว'));
+  if (d.delstu && confirm('ลบนักเรียนคนนี้?')) Db.del('students', d.delstu).then(() => toast('ลบนักเรียนแล้ว'));
+  if (d.delhw) Db.del('homework', d.delhw).then(() => toast('ลบโพสต์แล้ว'));
+  if (d.copy) navigator.clipboard.writeText(d.copy).then(() => toast('คัดลอกรหัสแล้ว'));
+});
+$('#burger').onclick = () => $('#menu').classList.toggle('open');
+$('#nCancel').onclick = resetNews;
+$('#nFile').onchange = async e => { if (e.target.files[0]) { S.img = await shrink(e.target.files[0]); setPreview(S.img); } };
+$('#nImg').oninput = e => { S.img = ''; setPreview(e.target.value.trim()); };
+
+$('#adminGate').onsubmit = async e => { e.preventDefault();
+  try {
+    if (Db.mode === 'firebase') await Db.au.signInWithEmailAndPassword(Db.auth, $('#memail').value.trim(), $('#mkey').value);
+    else if ($('#mkey').value !== ADMIN_KEY) throw 0;
+    else { session.set({admin: true}); S.admin = true; adminSync(); }
+    $('#mkey').value = ''; go('admin'); toast('ปลดล็อกแอดมินสำเร็จ');
+  } catch { toast('อีเมลหรือรหัสผ่านไม่ถูกต้อง', true); } };
+$('#adminOut').onclick = async () => {
+  if (Db.mode === 'firebase') await Db.au.signOut(Db.auth); else { session.set({admin: false}); S.admin = false; adminSync(); }
+  go('admin'); toast('ออกจากระบบแล้ว'); };
+
+$('#newsForm').onsubmit = async e => { e.preventDefault();
+  const data = {title: $('#nTitle').value.trim(), body: $('#nBody').value.trim(), image: S.img || $('#nImg').value.trim()};
+  try { S.editId ? await Db.update('news', S.editId, data) : await Db.add('news', data);
+    toast(S.editId ? 'แก้ไขข่าวสำเร็จ' : 'เพิ่มข่าวสำเร็จ'); resetNews();
+  } catch (err) { console.error(err); toast('บันทึกไม่สำเร็จ (รูปอาจใหญ่เกินไป)', true); } };
+
+// สร้างรหัสนักเรียน LPC-XXXX และบันทึกลงฐานข้อมูล
+$('#stuForm').onsubmit = async e => { e.preventDefault();
+  const no = $('#sNo').value.trim();
+  if (S.students.some(s => s.no === no)) return toast('เลขประจำตัวนี้มีอยู่แล้ว', true);
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', used = new Set(S.students.map(s => s.code)); let code;
+  do { code = 'LPC-' + [0, 1, 2].map(() => [...crypto.getRandomValues(new Uint8Array(4))].map(n => chars[n % chars.length]).join('')).join('-'); } while (used.has(code));
+  await Db.set('students', await sha(code), {name: $('#sName').value.trim(), cls: $('#sClass').value.trim(), no, code}); // ชื่อโหนด = SHA-256 ของรหัส
+  $('#stuForm').reset(); const r = $('#sResult'); r.classList.remove('hidden');
+  r.innerHTML = `<p>รหัสนักเรียน</p><div class="code">${code}</div><button type="button" class="btn b3 sm" data-copy="${code}">คัดลอก</button>`;
+  toast('สร้างรหัสและบันทึกสำเร็จ'); };
+
+$('#hwForm').onsubmit = async e => { e.preventDefault();
+  await Db.add('homework', {title: $('#hTitle').value.trim(), body: $('#hBody').value.trim(), cls: $('#hClass').value.trim()});
+  $('#hwForm').reset(); toast('โพสต์สำเร็จ'); };
+
+// นักเรียนล็อกอิน: แปลงรหัสเป็น SHA-256 แล้วอ่านเฉพาะโหนดของตัวเอง (ไม่โหลดรายชื่อทั้งหมด)
+$('#loginForm').onsubmit = async e => { e.preventDefault();
+  const id = await sha($('#code').value.trim().toUpperCase());
+  const s = await Db.get('students', id).catch(() => null);
+  if (!s) return toast('ไม่พบรหัสนี้ กรุณาตรวจสอบกับแอดมิน', true);
+  S.me = s; session.set({student: id}); $('#code').value = ''; render(); go('student'); toast('ยินดีต้อนรับ ' + s.name); };
+$('#studentOut').onclick = () => { S.me = null; session.set({student: null}); go('student'); toast('ออกจากระบบแล้ว'); };
+
+/* ---------- เริ่มทำงาน ---------- */
+(async () => {
+  await Db.init();
+  ['news', 'homework'].forEach(c => Db.watch(c, list => { S[c] = list; render(); }));
+  $('#emailBox').classList.toggle('hidden', Db.mode !== 'firebase');
+  const sid = session.get().student;
+  if (sid) { S.me = await Db.get('students', sid).catch(() => null); if (!S.me) session.set({student: null}); }
+  if (Db.mode === 'firebase') Db.au.onAuthStateChanged(Db.auth, u => { S.admin = !!u; adminSync(); });
+  else { S.admin = !!session.get().admin; adminSync(); }
+  go('home');
+  if (Db.mode === 'local') console.info('โหมดทดลอง: ข้อมูลอยู่ใน localStorage ใส่ FIREBASE_CONFIG เพื่อใช้ Realtime Database');
+})();
+</script>
+</body>
+</html>
