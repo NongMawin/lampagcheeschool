@@ -374,7 +374,7 @@ $('#newsForm').onsubmit = async e => { e.preventDefault();
   } catch (err) { console.error(err); toast('บันทึกไม่สำเร็จ (รูปอาจใหญ่เกินไป)', true); } };
 
 // สร้างรหัสนักเรียน LPC-XXXX และบันทึกลงฐานข้อมูล
-$('#stuForm').onsubmit = async e => { e.preventDefault();
+$('#stuForm').onsubmit = async e => { e.preventDefault(); try {
   const no = $('#sNo').value.trim();
   if (S.students.some(s => s.no === no)) return toast('เลขประจำตัวนี้มีอยู่แล้ว', true);
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', used = new Set(S.students.map(s => s.code)); let code;
@@ -382,7 +382,11 @@ $('#stuForm').onsubmit = async e => { e.preventDefault();
   await Db.set('students', await sha(code), {name: $('#sName').value.trim(), cls: $('#sClass').value.trim(), no, code}); // ชื่อโหนด = SHA-256 ของรหัส
   $('#stuForm').reset(); const r = $('#sResult'); r.classList.remove('hidden');
   r.innerHTML = `<p>รหัสนักเรียน</p><div class="code">${code}</div><button type="button" class="btn b3 sm" data-copy="${code}">คัดลอก</button>`;
-  toast('สร้างรหัสและบันทึกสำเร็จ'); };
+  toast('สร้างรหัสและบันทึกสำเร็จ');
+  } catch (err) { // แสดงสาเหตุจริงแทนการเงียบ
+    console.error(err);
+    toast(/permission/i.test(err?.message) ? 'ไม่มีสิทธิ์บันทึก: ตรวจ Rules/UID แอดมิน แล้วล็อกอินแอดมินใหม่' : 'บันทึกไม่สำเร็จ: ' + (err?.message || err), true);
+  } };
 
 $('#hwForm').onsubmit = async e => { e.preventDefault();
   await Db.add('homework', {title: $('#hTitle').value.trim(), body: $('#hBody').value.trim(), cls: $('#hClass').value.trim()});
