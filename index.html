@@ -23,7 +23,7 @@ h3{color:var(--blue);margin-bottom:.5rem}
 .nav-in{width:min(1180px,94%);margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;gap:1rem}
 .brand{display:flex;align-items:center;gap:.7rem;cursor:pointer;color:var(--blue);font-weight:700}
 /* ===== จุดใส่โลโก้: เปลี่ยนไฟล์ที่ <img id="logo"> ในแถบเมนูและหน้าแรก ===== */
-.logo{width:48px;height:48px;px;px;object-fit:contain}
+.logo{width:62px;height:62px;object-fit:contain}
 .menu{display:flex;gap:.3rem;flex-wrap:wrap}
 .menu button{font:inherit;border:0;background:none;padding:.45rem .9rem;border-radius:999px;cursor:pointer;color:var(--ink);transition:.25s}
 .menu button:hover{background:rgba(30,58,138,.1)}.menu button.on{background:var(--blue);color:#fff}
@@ -34,7 +34,6 @@ h3{color:var(--blue);margin-bottom:.5rem}
 .sm{padding:.25rem .7rem;font-size:.8rem;border-radius:9px}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .hero{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:center;margin-bottom:3rem;padding:2rem;border-radius:28px;background:linear-gradient(135deg,rgba(30,58,138,.08),rgba(5,150,105,.12))}
-.logo{width:62px;height:62px;object-fit:contain}
 .hero .logo{width:260px;height:260px;max-width:100%;margin:0 auto;display:block}
 .hero p{margin:1rem 0 1.4rem;max-width:56ch;color:#334155}
 .acts{display:flex;gap:.7rem;flex-wrap:wrap}
@@ -62,7 +61,7 @@ th{background:var(--blue);color:#fff;text-align:left;padding:.6rem;font-weight:5
 #toasts{position:fixed;right:1rem;bottom:1rem;z-index:100;display:flex;flex-direction:column;gap:.5rem}
 .toast{background:var(--green);color:#fff;padding:.8rem 1.2rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.2);animation:rise .35s both}.toast.err{background:#dc2626}
 footer{text-align:center;padding:1.3rem;color:var(--muted);font-size:.88rem}
-@media(max-width:860px){.hero{grid-template-columns:1fr}.burger{display:block}
+@media(max-width:860px){.hero{grid-template-columns:1fr}.hero .logo{order:-1;width:150px;height:150px}.burger{display:block}
  .menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:#fff;padding:.8rem;box-shadow:0 10px 20px rgba(0,0,0,.1)}.menu.open{display:flex}.menu button{text-align:left}}
 @media(max-width:520px){.row{grid-template-columns:1fr}.brand span{font-size:.95rem}}
 @media(min-width:1900px){html{font-size:19px}main,.nav-in{width:min(1500px,90%)}}
@@ -113,9 +112,9 @@ footer{text-align:center;padding:1.3rem;color:var(--muted);font-size:.88rem}
 <section class="view hidden" id="v-about">
   <h2 class="rise">เกี่ยวกับโรงเรียน</h2>
   <div class="grid two">
-    <article class="card rise" style="--i:1"><h3>ประวัติความเป็นมา</h3><p>   โรงเรียนลำผักชี เดิมชื่อว่า "โรงเรียนประชาบาลตำบลลำผักชี" อำเภอหนองจอก กรุงเทพมหานคร ตั้งขึ้นเมื่อวันที่ 25 กรกฎาคม พ.ศ.2483 โดยนายอำเภอตั้งขึ้น ดำรงโรงเรียน โดยวิธีโรงเรียนประชาบาล จัดทำการเรียนการสอนตามหลักสูตรประถมศึกษาประชาบาล และเปิดสอนครั้งแรกโดยอาศัยโรงนา ที่นายบุง วัลลิภะคะ เป็นราษฎรในท้องถิ่น ได้มีจิตศรัทธาบริจาคโรงนาให้เป็นที่เรียนขนาด 6x15 เมตร ประกอบขึ้นด้วยไม้ไผ่ ในเวลาต่อมาโรงนาที่ใช้จัดการเรียนการสอนเกิดผุพังและหลังคารั่ว นายตาด แย้มจันทร์  ครูใหญ่ในขณะนั้นจึงได้บอกบุญกับบรรดาผู้ปกครองเพื่อหาทุนในการซ่อมแซมตลอดมาในปี พ.ศ.2499 ได้จัดสร้างอาคารเรียนหลังใหม่ขึ้นในเดือนพฤศจิกายน 2499 เป็นอาคารเรียนแบบ ป.1 กรมสามัญศึกษา ขนาด 8x15 เมตร จากนั้นได้ย้ายไปสร้างที่แห่งใหม่ ในที่ดินของ นายเล็ก - นางรอด ดีประเสริฐ ซึ่งได้อุทิศให้กับโรงเรียน เป็นพื้นที่ 2 ไร่ ขนาด 40x50 เมตร แต่ทั้งนี้พื้นที่ดังกล่าวเป็นที่ลุ่ม นายตาด แย้มจันทร์ จึงได้ติดต่อเรือขุดมาช่วยตักดิน เพื่อปรับสภาพพื้นที่ให้เหมาะสมกับการจัดกิจกรรมการเรียนการสอนมาจนถึงปัจจุบัน</p></article>
-    <article class="card rise" style="--i:2"><h3>วิสัยทัศน์</h3><p>โรงเรียนลำผักชี มุ่งเน้นพัฒนาผู้เรียน ตามมาตรฐานการศึกษากรุงเทพมหานคร สอดคล้องกับแนวทางการจัดการเรียนรู้ในศตวรรษที่ ๒๑ โดยความร่วมมือของทุกภาคส่วนแบบยั่งยืน</p></article>
-    <article class="card rise" style="--i:3"><h3>ผู้บริหาร</h3><p>ผู้อำนวยการ: นางพัตรพิมล ผิวขาว </p></article>
+    <article class="card rise" style="--i:1"><h3>ประวัติความเป็นมา</h3><p>(แก้ไขเป็นประวัติจริงของโรงเรียนลำผักชี)</p></article>
+    <article class="card rise" style="--i:2"><h3>วิสัยทัศน์</h3><p>นักเรียนมีความรู้ คู่คุณธรรม พร้อมก้าวสู่โลกยุคใหม่</p></article>
+    <article class="card rise" style="--i:3"><h3>ผู้บริหาร</h3><p>ผู้อำนวยการ: (ใส่ชื่อ-นามสกุล)</p></article>
   </div>
 </section>
 
